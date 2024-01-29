@@ -814,6 +814,8 @@ local Remote = ReplicatedStorage.Remote.Quest.Quest  -- Replace with the actual 
 
 local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "FRUIT", Default = false })
 
+local isTakingQuest = false
+
 local function findNearestNPC()
     local npcFolder = workspace.NPCS
     local nearestNPC = nil
@@ -840,7 +842,9 @@ local function isPlayerOnQuest()
 end
 
 local function teleportAndTakeQuest()
-    if not isPlayerOnQuest() then
+    if not isPlayerOnQuest() and not isTakingQuest then
+        isTakingQuest = true
+
         local nearestNPC = findNearestNPC()
 
         if nearestNPC then
@@ -862,8 +866,10 @@ local function teleportAndTakeQuest()
         else
             warn("No NPCs found.")
         end
+
+        isTakingQuest = false
     else
-        print("Player is already on a quest. Cannot take a new quest.")
+        print("Player is already on a quest or in the process of taking a quest. Cannot take a new quest.")
     end
 end
 
