@@ -812,8 +812,6 @@ local player = Players.LocalPlayer
 local targetNPCName = ""  -- Leave this empty to find the nearest NPC
 local Remote = ReplicatedStorage.Remote.Quest.Quest  -- Replace with the actual path to your remote event
 
-local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "FRUIT", Default = false })
-
 local function findNearestNPC()
     local npcFolder = workspace.NPCS
     local nearestNPC = nil
@@ -842,6 +840,7 @@ local function teleportAndTakeQuest()
 
         wait(0.9)  -- Wait for 0.9 seconds
 
+        -- Simulate taking the quest by invoking the server function
         local success, errorMessage = pcall(function()
             Remote:InvokeServer(nearestNPC)
         end)
@@ -857,18 +856,24 @@ local function teleportAndTakeQuest()
     end
 end
 
+local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "FRUIT", Default = false })
+local isScriptEnabled = false
+
 local function checkToggle()
-    while Toggle.Value do
-        teleportAndTakeQuest()
-        wait() -- Add a delay to avoid spamming the server with too many events
-    end
+    isScriptEnabled = Toggle.Value
+    print("Toggle changed:", Toggle.Value)
 end
 
 Toggle:OnChanged(checkToggle)
 checkToggle()
 
+while true do
+    if isScriptEnabled then
+        teleportAndTakeQuest()
+    end
+    wait()
+end
 
-            
 
             local Tabs = {
                 Main = Window:AddTab({ Title = "Misc", Icon = "book" }),
