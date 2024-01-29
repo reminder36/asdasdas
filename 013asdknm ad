@@ -805,7 +805,11 @@ do
             Toggle:OnChanged(checkToggle)
             checkToggle()
 
-            -- Assume this is the original script
+            local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "FRUIT", Default = false })
+            local function checkToggle()
+                while Toggle.Value do
+                    can you put this script
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -859,20 +863,16 @@ local function teleportAndTakeQuest()
     end
 end
 
--- Assume this is the toggle script
-local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "FRUIT", Default = false })
+-- Call the function to teleport to the nearest NPC and take the quest
+teleportAndTakeQuest()
 
-local function checkToggle()
-    while Toggle.Value do
-        teleportAndTakeQuest()
-        print("Toggle changed:", Toggle.Value)
-        wait() -- Add a delay to avoid spamming the server with too many events
-    end
-end
-
-Toggle:OnChanged(checkToggle)
-checkToggle()
-
+                    print("Toggle changed:", Options.MyToggle.Value)
+                    wait(10) -- Add a delay to avoid spamming the server with too many events
+                end
+            end
+            
+            Toggle:OnChanged(checkToggle)
+            checkToggle()
 
 
             local Tabs = {
