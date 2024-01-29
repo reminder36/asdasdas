@@ -867,7 +867,7 @@ end
 teleportAndTakeQuest()
 
                     print("Toggle changed:", Options.MyToggle.Value)
-                    wait(10) -- Add a delay to avoid spamming the server with too many events
+                    wait() -- Add a delay to avoid spamming the server with too many events
                 end
             end
             
