@@ -833,27 +833,37 @@ local function findNearestNPC()
     return nearestNPC
 end
 
+local function isPlayerOnQuest()
+    -- Add your own logic to check if the player is currently on a quest
+    -- Replace the following line with your actual quest-checking code
+    return player.PlayerData.QuestInProgress ~= nil
+end
+
 local function teleportAndTakeQuest()
-    local nearestNPC = findNearestNPC()
+    if not isPlayerOnQuest() then
+        local nearestNPC = findNearestNPC()
 
-    if nearestNPC then
-        player.Character:SetPrimaryPartCFrame(nearestNPC.HumanoidRootPart.CFrame)
-        print("Teleported to the nearest NPC:", nearestNPC.Name)
+        if nearestNPC then
+            player.Character:SetPrimaryPartCFrame(nearestNPC.HumanoidRootPart.CFrame)
+            print("Teleported to the nearest NPC:", nearestNPC.Name)
 
-        wait(0.9)  -- Wait for 0.9 seconds
+            wait(0.9)  -- Wait for 0.9 seconds
 
-        local success, errorMessage = pcall(function()
-            Remote:InvokeServer(nearestNPC)
-        end)
+            local success, errorMessage = pcall(function()
+                Remote:InvokeServer(nearestNPC)
+            end)
 
-        if success then
-            print("Quest taken successfully!")
-            -- Additional quest-related actions can be added here
+            if success then
+                print("Quest taken successfully!")
+                -- Additional quest-related actions can be added here
+            else
+                warn("Failed to take the quest: " .. errorMessage)
+            end
         else
-            warn("Failed to take the quest: " .. errorMessage)
+            warn("No NPCs found.")
         end
     else
-        warn("No NPCs found.")
+        print("Player is already on a quest. Cannot take a new quest.")
     end
 end
 
