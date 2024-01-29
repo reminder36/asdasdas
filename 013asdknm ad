@@ -805,41 +805,66 @@ do
             Toggle:OnChanged(checkToggle)
             checkToggle()
 
-            local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "FRUIT", Default = false })
+            -- Assume this is the original script
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local player = Players.LocalPlayer
+local targetNPCName = ""  -- Leave this empty to find the nearest NPC
+local Remote = ReplicatedStorage.Remote.Quest.Quest  -- Replace with the actual path to your remote event
+
+-- Function to find the nearest NPC
 local function findNearestNPC()
-    -- Your findNearestNPC function here...
+    local npcFolder = workspace.NPCS
+    local nearestNPC = nil
+    local shortestDistance = math.huge
+
+    for _, npc in ipairs(npcFolder:GetChildren()) do
+        if npc:IsA("Model") and npc:FindFirstChild("HumanoidRootPart") then
+            local distance = (player.Character.HumanoidRootPart.Position - npc.HumanoidRootPart.Position).Magnitude
+
+            if distance < shortestDistance then
+                shortestDistance = distance
+                nearestNPC = npc
+            end
+        end
+    end
+
+    return nearestNPC
 end
 
+-- Function to teleport to the nearest NPC and take the quest after a delay
 local function teleportAndTakeQuest()
-    -- Your teleportAndTakeQuest function here...
+    local nearestNPC = findNearestNPC()
+
+    if nearestNPC then
+        player.Character:SetPrimaryPartCFrame(nearestNPC.HumanoidRootPart.CFrame)
+        print("Teleported to the nearest NPC:", nearestNPC.Name)
+
+        wait(0.9)  -- Wait for 0.9 seconds
+
+        -- Simulate taking the quest by invoking the server function
+        local success, errorMessage = pcall(function()
+            Remote:InvokeServer(nearestNPC)
+        end)
+
+        if success then
+            print("Quest taken successfully!")
+            -- Additional quest-related actions can be added here
+        else
+            warn("Failed to take the quest: " .. errorMessage)
+        end
+    else
+        warn("No NPCs found.")
+    end
 end
+
+-- Assume this is the toggle script
+local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "FRUIT", Default = false })
 
 local function checkToggle()
     while Toggle.Value do
-        local nearestNPC = findNearestNPC()
-
-        if nearestNPC then
-            player.Character:SetPrimaryPartCFrame(nearestNPC.HumanoidRootPart.CFrame)
-            print("Teleported to the nearest NPC:", nearestNPC.Name)
-
-            wait(0.9)  -- Wait for 0.9 seconds
-
-            -- Simulate taking the quest by invoking the server function
-            local success, errorMessage = pcall(function()
-                Remote:InvokeServer(nearestNPC)
-            end)
-
-            if success then
-                print("Quest taken successfully!")
-                -- Additional quest-related actions can be added here
-            else
-                warn("Failed to take the quest: " .. errorMessage)
-            end
-        else
-            warn("No NPCs found.")
-        end
-
+        teleportAndTakeQuest()
         print("Toggle changed:", Toggle.Value)
         wait() -- Add a delay to avoid spamming the server with too many events
     end
