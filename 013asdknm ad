@@ -805,36 +805,18 @@ do
             Toggle:OnChanged(checkToggle)
             checkToggle()
 
-            local Toggle = Tabs.Main:AddToggle("MyToggle", { Title = "name", Default = false })
+            local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "FRUIT", Default = false })
+
+local function findNearestNPC()
+    -- Your findNearestNPC function here...
+end
 
 local function teleportAndTakeQuest()
-    local Players = game:GetService("Players")
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    -- Your teleportAndTakeQuest function here...
+end
 
-    local player = Players.LocalPlayer
-    local targetNPCName = ""  -- Leave this empty to find the nearest NPC
-    local Remote = ReplicatedStorage.Remote.Quest.Quest  -- Replace with the actual path to your remote event
-
-    local function findNearestNPC()
-        local npcFolder = workspace.NPCS
-        local nearestNPC = nil
-        local shortestDistance = math.huge
-
-        for _, npc in ipairs(npcFolder:GetChildren()) do
-            if npc:IsA("Model") and npc:FindFirstChild("HumanoidRootPart") then
-                local distance = (player.Character.HumanoidRootPart.Position - npc.HumanoidRootPart.Position).Magnitude
-
-                if distance < shortestDistance then
-                    shortestDistance = distance
-                    nearestNPC = npc
-                end
-            end
-        end
-
-        return nearestNPC
-    end
-
-    local function teleportAndTakeQuest()
+local function checkToggle()
+    while Toggle.Value do
         local nearestNPC = findNearestNPC()
 
         if nearestNPC then
@@ -857,23 +839,20 @@ local function teleportAndTakeQuest()
         else
             warn("No NPCs found.")
         end
-    end
 
-    while Toggle.Value do
-        teleportAndTakeQuest()
-        wait()  -- Add a delay to avoid spamming the server with too many events
+        print("Toggle changed:", Toggle.Value)
+        wait() -- Add a delay to avoid spamming the server with too many events
     end
 end
 
-Toggle:OnChanged(teleportAndTakeQuest)
-teleportAndTakeQuest()
+Toggle:OnChanged(checkToggle)
+checkToggle()
 
 
 
             local Tabs = {
                 Main = Window:AddTab({ Title = "Misc", Icon = "book" }),
             }
-            
 
             local Keybind = Tabs.Main:AddKeybind("Keybind", {
                 Title = "KeyBind",
