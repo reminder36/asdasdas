@@ -40,139 +40,138 @@ do
 
 
     local Players = game:GetService("Players")
-    local RunService = game:GetService("RunService")
-    
-    local player = Players.LocalPlayer
-    local character
-    
-    local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "Farm Nearest Enemy", Default = false})
-    
-    local continueTeleport = false
-    
-    local function findNearestEnemy()
-        local humanoidEnemies = {} -- Assuming enemies are humanoid models
-    
-        local enemiesFolder = workspace:FindFirstChild("Enemies")
-    
-        if not enemiesFolder then
-            return nil
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character
+
+local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "Farm Nearest Enemy", Default = false})
+
+local continueTeleport = false
+
+local function findNearestEnemy()
+    local humanoidEnemies = {} -- Assuming enemies are humanoid models
+
+    local enemiesFolder = workspace:FindFirstChild("Enemies")
+
+    if not enemiesFolder then
+        return nil
+    end
+
+    for _, enemy in pairs(enemiesFolder:GetChildren()) do
+        if enemy:IsA("Model") and enemy:FindFirstChildOfClass("Humanoid") then
+            table.insert(humanoidEnemies, enemy)
         end
-    
-        for _, enemy in pairs(enemiesFolder:GetChildren()) do
-            if enemy:IsA("Model") and enemy:FindFirstChildOfClass("Humanoid") then
-                table.insert(humanoidEnemies, enemy)
-            end
+    end
+
+    local nearestEnemy = nil
+    local minDistance = math.huge
+
+    local playerPosition = character.HumanoidRootPart.Position
+
+    for _, enemy in pairs(humanoidEnemies) do
+        local enemyPosition = enemy:FindFirstChildOfClass("Humanoid").Parent.HumanoidRootPart.Position
+        local distance = (playerPosition - enemyPosition).Magnitude
+
+        if distance < minDistance then
+            nearestEnemy = enemy
+            minDistance = distance
         end
-    
-        local nearestEnemy = nil
-        local minDistance = math.huge
-    
+    end
+
+    return nearestEnemy
+end
+
+local function teleportAboveEnemy(target)
+    if target then
         local playerPosition = character.HumanoidRootPart.Position
-    
-        for _, enemy in pairs(humanoidEnemies) do
-            local enemyPosition = enemy:FindFirstChildOfClass("Humanoid").Parent.HumanoidRootPart.Position
-            local distance = (playerPosition - enemyPosition).Magnitude
-    
-            if distance < minDistance then
-                nearestEnemy = enemy
-                minDistance = distance
-            end
-        end
-    
-        return nearestEnemy
+        local enemyPosition = target:FindFirstChildOfClass("Humanoid").Parent.HumanoidRootPart.Position
+
+        local distanceToTeleportAbove = 10 -- Adjust this distance as needed
+
+        local newPosition = Vector3.new(enemyPosition.X, enemyPosition.Y + distanceToTeleportAbove, enemyPosition.Z)
+
+        character:SetPrimaryPartCFrame(CFrame.new(newPosition, enemyPosition))
+    else
+        print("No target found.")
     end
-    
-    local function teleportInFrontOfEnemy(target)
-        if target then
-            local playerPosition = character.HumanoidRootPart.Position
-            local enemyPosition = target:FindFirstChildOfClass("Humanoid").Parent.HumanoidRootPart.Position
-            local direction = (enemyPosition - playerPosition).Unit
-    
-            local distanceToTeleportInFront = 5 -- Adjust this distance as needed
-    
-            local newPosition = enemyPosition + (direction * distanceToTeleportInFront)
-    
-            character:SetPrimaryPartCFrame(CFrame.new(newPosition, enemyPosition))
-        else
-            print("No target found.")
-        end
+end
+
+local function applyBodyVelocity(target)
+    if target then
+        local playerPosition = character.HumanoidRootPart.Position
+        local enemyPosition = target:FindFirstChildOfClass("Humanoid").Parent.HumanoidRootPart.Position
+        local direction = (playerPosition - enemyPosition).Unit
+
+        local distanceToMoveAway = 5 -- Adjust this distance as needed
+
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.Velocity = direction * distanceToMoveAway
+        bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0)
+        bodyVelocity.P = 5000 -- Adjust this value as needed
+
+        bodyVelocity.Parent = character.HumanoidRootPart
+
+        RunService.Heartbeat:Wait()
+        bodyVelocity:Destroy()
+    else
+        print("No target found.")
     end
-    
-    local function applyBodyVelocity(target)
-        if target then
-            local playerPosition = character.HumanoidRootPart.Position
-            local enemyPosition = target:FindFirstChildOfClass("Humanoid").Parent.HumanoidRootPart.Position
-            local direction = (playerPosition - enemyPosition).Unit
-    
-            local distanceToMoveAway = 5 -- Adjust this distance as needed
-    
-            local bodyVelocity = Instance.new("BodyVelocity")
-            bodyVelocity.Velocity = direction * distanceToMoveAway
-            bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0)
-            bodyVelocity.P = 5000 -- Adjust this value as needed
-    
-            bodyVelocity.Parent = character.HumanoidRootPart
-    
-            RunService.Heartbeat:Wait()
-            bodyVelocity:Destroy()
-        else
-            print("No target found.")
-        end
+end
+
+local function isAlive(enemy)
+    if enemy and enemy:FindFirstChildOfClass("Humanoid") then
+        return enemy:FindFirstChildOfClass("Humanoid").Health > 0
     end
-    
-    local function isAlive(enemy)
-        if enemy and enemy:FindFirstChildOfClass("Humanoid") then
-            return enemy:FindFirstChildOfClass("Humanoid").Health > 0
-        end
-        return false
-    end
-    
-    local function updateTeleport()
-        while wait(1) do -- Adjust the delay as needed
-            if continueTeleport and character and character:IsA("Model") and character:FindFirstChildOfClass("Humanoid") then
-                local targetEnemy = findNearestEnemy()
-    
-                if targetEnemy then
-                    if not isAlive(targetEnemy) then
-                        targetEnemy = findNearestEnemy()
-                    end
-    
-                    if continueTeleport then
-                        teleportInFrontOfEnemy(targetEnemy)
-                    end
+    return false
+end
+
+local function updateTeleport()
+    while wait(1) do -- Adjust the delay as needed
+        if continueTeleport and character and character:IsA("Model") and character:FindFirstChildOfClass("Humanoid") then
+            local targetEnemy = findNearestEnemy()
+
+            if targetEnemy then
+                if not isAlive(targetEnemy) then
+                    targetEnemy = findNearestEnemy()
+                end
+
+                if continueTeleport then
+                    teleportAboveEnemy(targetEnemy)
                 end
             end
         end
     end
-    
-    local function updateMovement()
-        while wait(0.1) do -- Adjust the delay as needed
-            if continueTeleport and character and character:IsA("Model") and character:FindFirstChildOfClass("Humanoid") then
-                local targetEnemy = findNearestEnemy()
-    
-                if targetEnemy then
-                    applyBodyVelocity(targetEnemy)
-                end
+end
+
+local function updateMovement()
+    while wait(0.1) do -- Adjust the delay as needed
+        if continueTeleport and character and character:IsA("Model") and character:FindFirstChildOfClass("Humanoid") then
+            local targetEnemy = findNearestEnemy()
+
+            if targetEnemy then
+                applyBodyVelocity(targetEnemy)
             end
         end
     end
-    
-    local function onCharacterAdded(newCharacter)
-        character = newCharacter
-    end
-    
-    local function checkToggle()
-        continueTeleport = Toggle.Value
-    end
-    
-    Toggle:OnChanged(checkToggle)
-    checkToggle()
-    
-    player.CharacterAdded:Connect(onCharacterAdded)
-    onCharacterAdded(player.Character) -- In case the character already exists when the script runs
-    
-    spawn(updateTeleport)
-    spawn(updateMovement)   
+end
+
+local function onCharacterAdded(newCharacter)
+    character = newCharacter
+end
+
+local function checkToggle()
+    continueTeleport = Toggle.Value
+end
+
+Toggle:OnChanged(checkToggle)
+checkToggle()
+
+player.CharacterAdded:Connect(onCharacterAdded)
+onCharacterAdded(player.Character) -- In case the character already exists when the script runs
+
+spawn(updateTeleport)
+spawn(updateMovement)
 
 
 -----auto attack------
